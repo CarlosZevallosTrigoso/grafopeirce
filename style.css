@@ -34,10 +34,9 @@ body, html {
 }
 
 #cy {
-    flex-grow: 1; /* Ocupa el resto del espacio */
+    flex-grow: 1;
     position: relative;
 }
-
 
 /* --- ESTILOS DEL PANEL LATERAL --- */
 #sidebar header h1 {
@@ -51,7 +50,7 @@ body, html {
     margin-bottom: 30px;
 }
 
-#controls, #info-panel {
+#controls, #sign-types, #info-panel {
     margin-bottom: 30px;
 }
 
@@ -62,8 +61,8 @@ h2 {
     margin-top: 0;
 }
 
-/* --- ESTILOS DE LOS BOTONES --- */
-#controls button {
+/* --- ESTILOS DE BOTONES Y MENÚ DESPLEGABLE --- */
+#controls button, #sign-type-selector {
     display: block;
     width: 100%;
     padding: 10px;
@@ -74,9 +73,12 @@ h2 {
     font-size: 1em;
     cursor: pointer;
     transition: all 0.2s ease;
+    -webkit-appearance: none; /* Quita estilos por defecto en algunos navegadores */
+    -moz-appearance: none;
+    appearance: none;
 }
 
-#controls button:hover {
+#controls button:hover, #sign-type-selector:hover {
     background-color: var(--bg-color);
     border-color: #ccc;
 }
@@ -84,8 +86,7 @@ h2 {
 #btn-primeridad { border-left: 5px solid #36AD4A; }
 #btn-segundidad { border-left: 5px solid #4285F4; }
 #btn-terceridad { border-left: 5px solid #CA2727; }
-#btn-reset { margin-top: 15px; font-weight: bold; }
-
+#btn-expand, #btn-collapse { margin-top: 15px; font-weight: bold; }
 
 /* --- ESTILOS DEL PANEL DE INFO --- */
 #info-panel h3 {
