@@ -33,32 +33,35 @@ document.addEventListener('DOMContentLoaded', function() {
         ]
     });
 
-    // --- FUNCIÓN MAESTRA DE VISIBILIDAD ---
-    // Esta es la única función que decide qué se ve y qué no.
+    // --- FUNCIÓN MAESTRA DE VISIBILIDAD (LÓGICA FINAL) ---
     function updateGraphVisibility() {
-        // 1. Oculta todo por defecto, excepto los 3 nodos iniciales.
-        cy.elements().not('#n1, #n2, #n10').addClass('hidden');
+        const rootNodes = cy.nodes('#n1, #n2, #n10');
+        
+        // 1. Empieza ocultando todo excepto los 3 nodos raíz.
+        cy.elements().not(rootNodes).addClass('hidden');
 
-        // 2. Recorre los nodos padres y muestra a sus hijos si están expandidos.
-        // Esto se hace en un bucle para manejar expansiones anidadas (hijos de hijos).
-        let nodesToCheck = cy.nodes('.expanded');
-        nodesToCheck.forEach(parentNode => {
+        // 2. Muestra los hijos de todos los nodos que estén marcados como 'expandidos'.
+        // Esta lógica es simple y directa, no es recursiva, cumpliendo la regla de expansión.
+        cy.nodes('.expanded:visible').forEach(parentNode => {
             const children = cy.nodes(parentNode.data('children').map(id => `#${id}`).join(', '));
             children.removeClass('hidden');
         });
 
-        // 3. Muestra las aristas que conectan nodos visibles.
+        // 3. La regla de colapso en cascada se cumple implícitamente: si un padre pierde la clase
+        //    '.expanded', sus hijos no se mostrarán en el paso anterior, y por lo tanto, los
+        //    nietos tampoco tendrán un camino visible para ser mostrados.
+
+        // 4. Muestra solo las aristas que conectan nodos visibles.
         cy.edges().addClass('hidden');
         cy.nodes(':visible').connectedEdges().removeClass('hidden');
         
-        // 4. Aplica el filtro de categoría si hay uno activo.
+        // 5. Aplica el filtro de categoría si hay uno activo.
         applyFilter();
 
-        // 5. Actualiza las etiquetas de los nodos especiales.
+        // 6. Actualiza las etiquetas de los nodos especiales.
         updateLabels();
     }
 
-    // Función auxiliar para las etiquetas
     function updateLabels() {
         cy.nodes('[?collapsedLabel]').forEach(node => {
             if (node.hasClass('expanded')) {
@@ -69,7 +72,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Función auxiliar para los filtros
     function applyFilter() {
         cy.elements().removeClass('grayed-out grayed-out-edge');
         if (activeFilter) {
@@ -79,7 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // --- CONFIGURACIÓN INICIAL DEL GRAFO ---
     fetch('peirce.json')
         .then(response => response.json())
         .then(data => {
@@ -87,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
             resetView();
         });
 
-    // --- MANEJADORES DE EVENTOS ---
     const infoPanel = document.getElementById('info-panel');
     const btnPrimeridad = document.getElementById('btn-primeridad');
     const btnSegundidad = document.getElementById('btn-segundidad');
@@ -95,7 +95,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnExpand = document.getElementById('btn-expand');
     const btnCollapse = document.getElementById('btn-collapse');
 
-    // Función para resetear el grafo a su estado inicial.
     function resetView() {
         cy.nodes().removeClass('expanded');
         activeFilter = null;
@@ -103,7 +102,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
     }
 
-    // Evento de clic en un nodo
     cy.on('tap', 'node', function(evt) {
         const clickedNode = evt.target;
         
@@ -111,14 +109,12 @@ document.addEventListener('DOMContentLoaded', function() {
         cy.elements().removeClass('highlighted');
         clickedNode.addClass('highlighted');
 
-        // Solo cambia el estado de expansión. La función maestra hará el resto.
         if (clickedNode.data('children')) {
             clickedNode.toggleClass('expanded');
             updateGraphVisibility();
         }
     });
     
-    // Evento de clic en un botón de filtro
     function handleFilterClick(category) {
         activeFilter = (activeFilter === category) ? null : category;
         updateGraphVisibility();
@@ -127,7 +123,6 @@ document.addEventListener('DOMContentLoaded', function() {
     btnSegundidad.addEventListener('click', () => handleFilterClick('Segundidad'));
     btnTerceridad.addEventListener('click', () => handleFilterClick('Terceridad'));
 
-    // Eventos de botones de control global
     btnExpand.addEventListener('click', () => {
         cy.nodes('[?children]').addClass('expanded');
         updateGraphVisibility();
