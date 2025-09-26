@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cy = cytoscape({
         container: document.getElementById('cy'),
         style: [
+            // Estilos para nodos, aristas, y clases dinámicas (sin cambios)
             {
                 selector: 'node',
                 style: {
@@ -32,8 +33,52 @@ document.addEventListener('DOMContentLoaded', function() {
             { selector: '.expanded', style: { 'border-color': '#A020F0' } }
         ]
     });
+
+    // --- EL "DIRECTOR DE ESCENA": LA FUNCIÓN MAESTRA DE VISIBILIDAD ---
+    function updateGraphVisibility() {
+        // 1. Oculta todo por defecto, excepto los 3 nodos raíz.
+        const rootNodes = cy.nodes('#n1, #n2, #n10');
+        cy.elements().not(rootNodes).addClass('hidden');
+
+        // 2. Función recursiva que recorre la genealogía y muestra los descendientes de nodos expandidos.
+        function revealDescendants(nodes) {
+            nodes.filter('.expanded').forEach(parentNode => {
+                const children = cy.nodes(parentNode.data('children').map(id => `#${id}`).join(', '));
+                children.removeClass('hidden');
+                // La recursión asegura que si un hijo también está expandido, se muestren sus hijos.
+                revealDescendants(children);
+            });
+        }
+        
+        // 3. Inicia la cascada de revelación desde los nodos raíz.
+        revealDescendants(rootNodes);
+        
+        // 4. Muestra solo las aristas que conectan nodos visibles.
+        cy.edges().addClass('hidden');
+        cy.nodes(':visible').connectedEdges().removeClass('hidden');
+        
+        // 5. Aplica el filtro de categoría y actualiza las etiquetas.
+        applyFilter();
+        updateLabels();
+    }
+
+    // --- FUNCIONES AUXILIARES ---
+    function updateLabels() {
+        cy.nodes('[?collapsedLabel]').forEach(node => {
+            node.data('label', node.hasClass('expanded') ? node.data('baseLabel') : node.data('collapsedLabel'));
+        });
+    }
+
+    function applyFilter() {
+        cy.elements().removeClass('grayed-out grayed-out-edge');
+        if (activeFilter) {
+            const nodesToGray = cy.nodes(`:visible[category != "${activeFilter}"]`);
+            nodesToGray.addClass('grayed-out');
+            cy.edges(':visible').addClass('grayed-out-edge');
+        }
+    }
     
-    // --- CONFIGURACIÓN INICIAL DEL GRAFO ---
+    // --- CONFIGURACIÓN Y MANEJADORES DE EVENTOS ---
     fetch('peirce.json')
         .then(response => response.json())
         .then(data => {
@@ -41,7 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
             resetView();
         });
 
-    // --- MANEJADORES DE EVENTOS ---
     const infoPanel = document.getElementById('info-panel');
     const btnPrimeridad = document.getElementById('btn-primeridad');
     const btnSegundidad = document.getElementById('btn-segundidad');
@@ -51,27 +95,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función para resetear el grafo a su estado inicial.
     function resetView() {
-        cy.nodes().forEach(node => {
-            if(node.data('isInitiallyHidden')) {
-                node.addClass('hidden');
-            }
-            if(node.data('children')) {
-                node.removeClass('expanded');
-            }
-            if(node.data('collapsedLabel')) {
-                node.data('label', node.data('collapsedLabel'));
-            }
-        });
-        cy.edges().addClass('hidden');
-        cy.nodes(':visible').connectedEdges().removeClass('hidden');
-        
+        cy.nodes().removeClass('expanded');
         activeFilter = null;
-        applyFilter();
-
+        updateGraphVisibility();
         setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
     }
 
-    // --- LÓGICA DE CLIC EN UN NODO (REESCRITA DESDE CERO) ---
+    // Evento de clic en un nodo: Solo cambia el estado y llama al director.
     cy.on('tap', 'node', function(evt) {
         const clickedNode = evt.target;
         
@@ -80,68 +110,24 @@ document.addEventListener('DOMContentLoaded', function() {
         clickedNode.addClass('highlighted');
 
         if (clickedNode.data('children')) {
-            if (clickedNode.hasClass('expanded')) {
-                // --- LÓGICA DE COLAPSO CONDICIONAL ---
-                const childrenNodes = cy.nodes(clickedNode.data('children').map(id => `#${id}`).join(', '));
-                let nodesToHide = childrenNodes;
-
-                // Revisa cada hijo. Si un hijo también está expandido, añade a sus descendientes a la lista de nodos a ocultar.
-                childrenNodes.forEach(child => {
-                    if (child.hasClass('expanded')) {
-                        nodesToHide = nodesToHide.union(child.successors());
-                    }
-                });
-                
-                nodesToHide.addClass('hidden');
-                nodesToHide.removeClass('expanded'); // Limpia el estado de los nodos ocultos
-                clickedNode.removeClass('expanded');
-
-            } else {
-                // --- LÓGICA DE EXPANSIÓN SIMPLE ---
-                const childrenNodes = cy.nodes(clickedNode.data('children').map(id => `#${id}`).join(', '));
-                childrenNodes.removeClass('hidden');
-                clickedNode.addClass('expanded');
-            }
-
-            // Actualiza las aristas y etiquetas después de cualquier acción
-            cy.edges().addClass('hidden');
-            cy.nodes(':visible').connectedEdges().removeClass('hidden');
-            updateLabels();
+            clickedNode.toggleClass('expanded');
+            updateGraphVisibility(); // Llama al director para que redibuje la escena.
         }
     });
     
-    function applyFilter() {
-        cy.elements().removeClass('grayed-out grayed-out-edge');
-        if (activeFilter) {
-            const nodesToGray = cy.nodes(`:visible[category != "${activeFilter}"]`);
-            nodesToGray.addClass('grayed-out');
-            cy.edges(':visible').addClass('grayed-out-edge');
-        }
-    }
-
-    function updateLabels() {
-        cy.nodes('[?collapsedLabel]').forEach(node => {
-            if (node.hasClass('expanded')) {
-                node.data('label', node.data('baseLabel'));
-            } else {
-                node.data('label', node.data('collapsedLabel'));
-            }
-        });
-    }
-
+    // Evento de clic en un botón de filtro: Solo cambia el estado y llama al director.
     function handleFilterClick(category) {
         activeFilter = (activeFilter === category) ? null : category;
-        applyFilter();
+        updateGraphVisibility();
     }
     btnPrimeridad.addEventListener('click', () => handleFilterClick('Primeridad'));
     btnSegundidad.addEventListener('click', () => handleFilterClick('Segundidad'));
     btnTerceridad.addEventListener('click', () => handleFilterClick('Terceridad'));
 
+    // Eventos de botones de control global: Solo cambian el estado y llaman al director.
     btnExpand.addEventListener('click', () => {
         cy.nodes('[?children]').addClass('expanded');
-        cy.elements().removeClass('hidden');
-        cy.edges().removeClass('hidden');
-        updateLabels();
+        updateGraphVisibility();
     });
 
     btnCollapse.addEventListener('click', resetView);
