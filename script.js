@@ -16,7 +16,11 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             {
                 selector: 'node[?children]',
-                style: { 'border-width': 4, 'border-color': '#000', 'cursor': 'pointer' }
+                style: { 
+                    'border-width': 4, 
+                    'border-color': '#000'
+                    // Se eliminó 'cursor: pointer' de aquí porque es inválido.
+                }
             },
             {
                 selector: 'edge',
@@ -33,11 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ]
     });
 
-    // --- FUNCIÓN MAESTRA DE VISIBILIDAD ---
-    // Esta única función se llama cada vez que cambia un estado (clic, filtro, etc.)
     function updateGraphVisibility() {
-        // Fase 1: Lógica Jerárquica (el colapso en cascada)
-        // Oculta todos los nodos que descienden de un padre colapsado.
         cy.nodes('[?children]').forEach(parentNode => {
             if (!parentNode.hasClass('expanded')) {
                 const nodesToHide = parentNode.successors();
@@ -45,8 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Fase 2: Lógica de Filtros
-        // Limpia cualquier filtro anterior y aplica el nuevo si existe.
         cy.elements().removeClass('grayed-out grayed-out-edge');
         if (activeFilter) {
             const seedNodes = cy.nodes(`:visible[category = "${activeFilter}"]`);
@@ -58,8 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
             nodesToShow.connectedEdges(':visible').removeClass('grayed-out-edge');
         }
 
-        // Fase 3: Lógica de Etiquetas
-        // Actualiza las etiquetas de los nodos iniciales según su estado de expansión.
         cy.nodes('[?collapsedLabel]').forEach(node => {
             if (node.hasClass('expanded')) {
                 node.data('label', node.data('baseLabel'));
@@ -69,16 +65,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- CONFIGURACIÓN INICIAL DEL GRAFO ---
     fetch('peirce.json')
         .then(response => response.json())
         .then(data => {
             cy.add(data.elements);
             cy.layout({ name: 'preset', padding: 30 }).run();
-            resetView(); // Establece el estado inicial
+            resetView();
         });
 
-    // --- MANEJADORES DE EVENTOS (Ahora solo cambian el estado) ---
     const infoPanel = document.getElementById('info-panel');
     const btnPrimeridad = document.getElementById('btn-primeridad');
     const btnSegundidad = document.getElementById('btn-segundidad');
@@ -86,7 +80,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnExpand = document.getElementById('btn-expand');
     const btnCollapse = document.getElementById('btn-collapse');
 
-    // Evento de clic en un nodo
+    function resetView() {
+        cy.nodes('[?isInitiallyHidden]').forEach(node => node.addClass('hidden'));
+        updateGraphVisibility(); // Llama a la función maestra que ahora se encarga de todo
+        setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
+    }
+
     cy.on('tap', 'node', function(evt) {
         const clickedNode = evt.target;
         const nodeData = clickedNode.data();
@@ -95,14 +94,20 @@ document.addEventListener('DOMContentLoaded', function() {
         cy.elements().removeClass('highlighted');
         clickedNode.addClass('highlighted');
 
-        // Solo cambia el estado de expansión. La función maestra hará el resto.
         if (nodeData.children) {
             clickedNode.toggleClass('expanded');
+            // Al hacer clic en un nodo, mostramos a sus hijos directos
+            const childrenNodes = cy.nodes(nodeData.children.map(id => `#${id}`).join(', '));
+            childrenNodes.removeClass('hidden');
             updateGraphVisibility();
         }
     });
+
+    // --- MANEJO CORRECTO DEL CURSOR ---
+    const cyContainer = document.getElementById('cy');
+    cy.on('mouseover', 'node[?children]', () => cyContainer.style.cursor = 'pointer');
+    cy.on('mouseout', 'node[?children]', () => cyContainer.style.cursor = 'default');
     
-    // Evento de clic en un botón de filtro
     function handleFilterClick(category) {
         activeFilter = (activeFilter === category) ? null : category;
         updateGraphVisibility();
@@ -111,16 +116,9 @@ document.addEventListener('DOMContentLoaded', function() {
     btnSegundidad.addEventListener('click', () => handleFilterClick('Segundidad'));
     btnTerceridad.addEventListener('click', () => handleFilterClick('Terceridad'));
 
-    // Eventos de botones de control global
-    function resetView() {
-        cy.nodes().removeClass('expanded'); // Resetea el estado de expansión
-        activeFilter = null; // Resetea el filtro
-        updateGraphVisibility(); // Aplica el estado reseteado
-        setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50); // Centra la vista
-    }
-
     btnExpand.addEventListener('click', () => {
         cy.nodes('[?children]').addClass('expanded');
+        cy.elements().removeClass('hidden');
         updateGraphVisibility();
     });
 
