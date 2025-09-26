@@ -32,34 +32,91 @@ document.addEventListener('DOMContentLoaded', function() {
             { selector: '.expanded', style: { 'border-color': '#A020F0' } }
         ]
     });
-
-    // --- FUNCIÓN MAESTRA DE VISIBILIDAD (LÓGICA FINAL) ---
-    function updateGraphVisibility() {
-        const rootNodes = cy.nodes('#n1, #n2, #n10');
-        
-        // 1. Empieza ocultando todo excepto los 3 nodos raíz.
-        cy.elements().not(rootNodes).addClass('hidden');
-
-        // 2. Muestra los hijos de todos los nodos que estén marcados como 'expandidos'.
-        // Esta lógica es simple y directa, no es recursiva, cumpliendo la regla de expansión.
-        cy.nodes('.expanded:visible').forEach(parentNode => {
-            const children = cy.nodes(parentNode.data('children').map(id => `#${id}`).join(', '));
-            children.removeClass('hidden');
+    
+    // --- CONFIGURACIÓN INICIAL DEL GRAFO ---
+    fetch('peirce.json')
+        .then(response => response.json())
+        .then(data => {
+            cy.add(data.elements);
+            resetView();
         });
 
-        // 3. La regla de colapso en cascada se cumple implícitamente: si un padre pierde la clase
-        //    '.expanded', sus hijos no se mostrarán en el paso anterior, y por lo tanto, los
-        //    nietos tampoco tendrán un camino visible para ser mostrados.
+    // --- MANEJADORES DE EVENTOS ---
+    const infoPanel = document.getElementById('info-panel');
+    const btnPrimeridad = document.getElementById('btn-primeridad');
+    const btnSegundidad = document.getElementById('btn-segundidad');
+    const btnTerceridad = document.getElementById('btn-terceridad');
+    const btnExpand = document.getElementById('btn-expand');
+    const btnCollapse = document.getElementById('btn-collapse');
 
-        // 4. Muestra solo las aristas que conectan nodos visibles.
+    // Función para resetear el grafo a su estado inicial.
+    function resetView() {
+        cy.nodes().forEach(node => {
+            if(node.data('isInitiallyHidden')) {
+                node.addClass('hidden');
+            }
+            if(node.data('children')) {
+                node.removeClass('expanded');
+            }
+            if(node.data('collapsedLabel')) {
+                node.data('label', node.data('collapsedLabel'));
+            }
+        });
         cy.edges().addClass('hidden');
         cy.nodes(':visible').connectedEdges().removeClass('hidden');
         
-        // 5. Aplica el filtro de categoría si hay uno activo.
+        activeFilter = null;
         applyFilter();
 
-        // 6. Actualiza las etiquetas de los nodos especiales.
-        updateLabels();
+        setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
+    }
+
+    // --- LÓGICA DE CLIC EN UN NODO (REESCRITA DESDE CERO) ---
+    cy.on('tap', 'node', function(evt) {
+        const clickedNode = evt.target;
+        
+        infoPanel.innerHTML = `<h3>${clickedNode.data('fullName')} (${clickedNode.data('label')})</h3><p class="category-badge" style="background-color:${clickedNode.data('color')};">${clickedNode.data('category')}</p><p>${clickedNode.data('description')}</p>`;
+        cy.elements().removeClass('highlighted');
+        clickedNode.addClass('highlighted');
+
+        if (clickedNode.data('children')) {
+            if (clickedNode.hasClass('expanded')) {
+                // --- LÓGICA DE COLAPSO CONDICIONAL ---
+                const childrenNodes = cy.nodes(clickedNode.data('children').map(id => `#${id}`).join(', '));
+                let nodesToHide = childrenNodes;
+
+                // Revisa cada hijo. Si un hijo también está expandido, añade a sus descendientes a la lista de nodos a ocultar.
+                childrenNodes.forEach(child => {
+                    if (child.hasClass('expanded')) {
+                        nodesToHide = nodesToHide.union(child.successors());
+                    }
+                });
+                
+                nodesToHide.addClass('hidden');
+                nodesToHide.removeClass('expanded'); // Limpia el estado de los nodos ocultos
+                clickedNode.removeClass('expanded');
+
+            } else {
+                // --- LÓGICA DE EXPANSIÓN SIMPLE ---
+                const childrenNodes = cy.nodes(clickedNode.data('children').map(id => `#${id}`).join(', '));
+                childrenNodes.removeClass('hidden');
+                clickedNode.addClass('expanded');
+            }
+
+            // Actualiza las aristas y etiquetas después de cualquier acción
+            cy.edges().addClass('hidden');
+            cy.nodes(':visible').connectedEdges().removeClass('hidden');
+            updateLabels();
+        }
+    });
+    
+    function applyFilter() {
+        cy.elements().removeClass('grayed-out grayed-out-edge');
+        if (activeFilter) {
+            const nodesToGray = cy.nodes(`:visible[category != "${activeFilter}"]`);
+            nodesToGray.addClass('grayed-out');
+            cy.edges(':visible').addClass('grayed-out-edge');
+        }
     }
 
     function updateLabels() {
@@ -72,52 +129,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function applyFilter() {
-        cy.elements().removeClass('grayed-out grayed-out-edge');
-        if (activeFilter) {
-            const nodesToGray = cy.nodes(`:visible[category != "${activeFilter}"]`);
-            nodesToGray.addClass('grayed-out');
-            cy.edges(':visible').addClass('grayed-out-edge');
-        }
-    }
-    
-    fetch('peirce.json')
-        .then(response => response.json())
-        .then(data => {
-            cy.add(data.elements);
-            resetView();
-        });
-
-    const infoPanel = document.getElementById('info-panel');
-    const btnPrimeridad = document.getElementById('btn-primeridad');
-    const btnSegundidad = document.getElementById('btn-segundidad');
-    const btnTerceridad = document.getElementById('btn-terceridad');
-    const btnExpand = document.getElementById('btn-expand');
-    const btnCollapse = document.getElementById('btn-collapse');
-
-    function resetView() {
-        cy.nodes().removeClass('expanded');
-        activeFilter = null;
-        updateGraphVisibility();
-        setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
-    }
-
-    cy.on('tap', 'node', function(evt) {
-        const clickedNode = evt.target;
-        
-        infoPanel.innerHTML = `<h3>${clickedNode.data('fullName')} (${clickedNode.data('label')})</h3><p class="category-badge" style="background-color:${clickedNode.data('color')};">${clickedNode.data('category')}</p><p>${clickedNode.data('description')}</p>`;
-        cy.elements().removeClass('highlighted');
-        clickedNode.addClass('highlighted');
-
-        if (clickedNode.data('children')) {
-            clickedNode.toggleClass('expanded');
-            updateGraphVisibility();
-        }
-    });
-    
     function handleFilterClick(category) {
         activeFilter = (activeFilter === category) ? null : category;
-        updateGraphVisibility();
+        applyFilter();
     }
     btnPrimeridad.addEventListener('click', () => handleFilterClick('Primeridad'));
     btnSegundidad.addEventListener('click', () => handleFilterClick('Segundidad'));
@@ -125,7 +139,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     btnExpand.addEventListener('click', () => {
         cy.nodes('[?children]').addClass('expanded');
-        updateGraphVisibility();
+        cy.elements().removeClass('hidden');
+        cy.edges().removeClass('hidden');
+        updateLabels();
     });
 
     btnCollapse.addEventListener('click', resetView);
