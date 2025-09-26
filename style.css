@@ -35,7 +35,7 @@ body, html {
 
 #cy {
     flex-grow: 1;
-    position: relative;
+    position: relative; /* Importante para que el panel flotante se posicione relativo a #cy */
 }
 
 /* --- ESTILOS DEL PANEL LATERAL --- */
@@ -50,7 +50,7 @@ body, html {
     margin-bottom: 30px;
 }
 
-#controls, #sign-types, #info-panel {
+#controls, #sign-types, #info-panel { /* info-panel ahora puede ser más simple */
     margin-bottom: 30px;
 }
 
@@ -88,15 +88,42 @@ h2 {
 #btn-terceridad { border-left: 5px solid #CA2727; }
 #btn-expand, #btn-collapse { margin-top: 15px; font-weight: bold; }
 
-/* --- ESTILOS DEL PANEL DE INFO --- */
-#info-panel h3 {
+
+/* --- ESTILOS DEL NUEVO PANEL FLOTANTE --- */
+#floating-info-panel {
+    position: absolute; /* Posicionamiento flotante */
+    bottom: 20px;       /* Distancia desde abajo */
+    left: 20px;         /* Distancia desde la izquierda */
+    width: 50%;         /* Ancho del panel */
+    max-width: 600px;   /* Ancho máximo para legibilidad */
+    background-color: rgba(255, 255, 255, 0.9); /* Fondo semi-transparente */
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Sombra para destacarlo */
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 10;        /* Asegura que esté por encima del grafo */
+    opacity: 1;         /* Opacidad inicial */
+    transition: opacity 0.3s ease-in-out; /* Transición para mostrar/ocultar */
+}
+
+/* Clase para ocultar el panel con transición */
+.hidden-panel {
+    opacity: 0 !important;
+    pointer-events: none; /* Deshabilita interacciones cuando está oculto */
+}
+
+
+#floating-info-panel h3 {
     margin: 0 0 5px 0;
     color: var(--primary-color);
+    font-size: 1.5em;
 }
-#info-panel p {
+#floating-info-panel p {
     line-height: 1.6;
+    font-size: 0.95em;
+    margin-top: 0;
 }
-#info-panel .category-badge {
+#floating-info-panel .category-badge {
     display: inline-block;
     padding: 3px 8px;
     border-radius: 12px;
