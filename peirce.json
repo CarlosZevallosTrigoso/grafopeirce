@@ -3,78 +3,30 @@
   "multigraph": false,
   "elements": {
     "nodes": [
-      {
-        "data": { "id": "n0", "label": "O.D", "fullName": "Objeto Dinámico", "category": "Segundidad", "color": "#4285F4", "description": "El objeto tal como es en la realidad, la causa del signo. Existe independientemente de su representación." }
-      },
-      {
-        "data": { "id": "n1", "label": "O.I", "fullName": "Objeto Inmediato", "category": "Segundidad", "color": "#4285F4", "description": "El objeto tal como es representado por el signo. Es la idea o imagen mental del objeto dentro del propio signo." }
-      },
-      {
-        "data": { "id": "n2", "label": "SG", "fullName": "Signo", "category": "Terceridad", "color": "#CA2727", "description": "La entidad principal que representa al objeto y genera un interpretante. Se divide en Cualisigno, Sinsigno y Legisigno." }
-      },
-      {
-        "data": { "id": "n3", "label": "ICO", "fullName": "Icono", "category": "Primeridad", "color": "#36AD4A", "description": "Signo que se refiere a su objeto por semejanza o cualidad compartida, como un retrato o un mapa." }
-      },
-      {
-        "data": { "id": "n4", "label": "IND", "fullName": "Índice", "category": "Segundidad", "color": "#4285F4", "description": "Signo que se refiere a su objeto por una conexión física o existencial, como el humo que indica fuego." }
-      },
-      {
-        "data": { "id": "n5", "label": "SIM", "fullName": "Símbolo", "category": "Terceridad", "color": "#CA2727", "description": "Signo que se refiere a su objeto por una ley, convención o hábito, como las palabras o las señales de tráfico." }
-      },
-      {
-        "data": { "id": "n6", "label": "CUA", "fullName": "Cualisigno", "category": "Primeridad", "color": "#36AD4A", "description": "Una cualidad que actúa como signo. Es una posibilidad, como el color rojo o la sensación de suavidad." }
-      },
-      {
-        "data": { "id": "n7", "label": "SIN", "fullName": "Sinsigno", "category": "Segundidad", "color": "#4285F4", "description": "Una cosa o evento existente que actúa como signo. Es un signo singular y concreto, como 'esta' mancha roja." }
-      },
-      {
-        "data": { "id": "n8", "label": "LEG", "fullName": "Legisigno", "category": "Terceridad", "color": "#CA2727", "description": "Una ley o convención que actúa como signo. Es un tipo general, como la palabra 'rojo' en español." }
-      },
-      {
-        "data": { "id": "n9", "label": "I.I", "fullName": "Interpretante Inmediato", "category": "Primeridad", "color": "#36AD4A", "description": "El primer efecto del signo en la mente, el significado potencial o la pura posibilidad de interpretación." }
-      },
-      {
-        "data": { "id": "n10", "label": "I.D", "fullName": "Interpretante Dinámico", "category": "Segundidad", "color": "#4285F4", "description": "El efecto real y singular que el signo produce en una mente en un momento dado. Es la interpretación en acto." }
-      },
-      {
-        "data": { "id": "n11", "label": "I.F", "fullName": "Interpretante Final", "category": "Terceridad", "color": "#CA2727", "description": "El efecto último y plenamente desarrollado del signo; el hábito o cambio de comportamiento que resulta de la interpretación." }
-      },
-      {
-        "data": { "id": "n12", "label": "REM", "fullName": "Rema", "category": "Primeridad", "color": "#36AD4A", "description": "Un signo que se interpreta como una mera posibilidad. Corresponde a un término o concepto, como 'azul' o 'correr'." }
-      },
-      {
-        "data": { "id": "n13", "label": "DIC", "fullName": "Dicisigno", "category": "Segundidad", "color": "#4285F4", "description": "Un signo que se interpreta como un hecho o existencia. Corresponde a una proposición, como 'el cielo es azul'." }
-      },
-      {
-        "data": { "id": "n14", "label": "ARG", "fullName": "Argumento", "category": "Terceridad", "color": "#CA2727", "description": "Un signo que se interpreta como una ley o razonamiento. Corresponde a una inferencia, como 'todos los hombres son mortales...'." }
-      },
-      {
-        "data": { "id": "n15", "label": "LEM", "fullName": "Interpretante Emocional", "category": "Primeridad", "color": "#36AD4A", "description": "El primer efecto del signo, consistente en una cualidad de sentimiento o sensación." }
-      },
-      {
-        "data": { "id": "n16", "label": "LEN", "fullName": "Interpretante Energético", "category": "Segundidad", "color": "#4285F4", "description": "El efecto del signo que implica un esfuerzo o acción, ya sea mental o física." }
-      },
-      {
-        "data": { "id": "n17", "label": "LLO", "fullName": "Interpretante Lógico", "category": "Terceridad", "color": "#CA2727", "description": "El efecto del signo que produce un cambio de hábito, un concepto o una regla de acción." }
-      },
-      {
-        "data": { "id": "n18", "label": "DED", "fullName": "Deducción", "category": "Terceridad", "color": "#CA2727", "description": "Tipo de argumento que parte de una regla general para llegar a un caso particular. Es un razonamiento necesario." }
-      },
-      {
-        "data": { "id": "n19", "label": "IND", "fullName": "Inducción", "category": "Segundidad", "color": "#4285F4", "description": "Tipo de argumento que parte de casos particulares para inferir una regla general. Es un razonamiento probable." }
-      },
-      {
-        "data": { "id": "n20", "label": "ABD", "fullName": "Abducción", "category": "Primeridad", "color": "#36AD4A", "description": "Tipo de argumento que parte de un resultado sorprendente para proponer una hipótesis explicativa. Es un razonamiento creativo." }
-      },
-      {
-        "data": { "id": "n21", "label": "IMAG", "fullName": "Imagen", "category": "Primeridad", "color": "#36AD4A", "description": "Subtipo de icono que comparte cualidades simples con su objeto, como un color o una forma." }
-      },
-      {
-        "data": { "id": "n22", "label": "DIAG", "fullName": "Diagrama", "category": "Segundidad", "color": "#4285F4", "description": "Subtipo de icono que representa las relaciones entre las partes de su objeto, como un organigrama o un mapa." }
-      },
-      {
-        "data": { "id": "n23", "label": "META", "fullName": "Metáfora", "category": "Terceridad", "color": "#CA2727", "description": "Subtipo de icono que representa a su objeto a través de un paralelismo o una analogía." }
-      }
+      { "data": { "id": "n0", "label": "O.D", "fullName": "Objeto Dinámico", "category": "Segundidad", "color": "#4285F4", "description": "El objeto tal como es en la realidad, la causa del signo. Existe independientemente de su representación." }, "position": { "x": -421, "y": -369 } },
+      { "data": { "id": "n1", "label": "O.I", "fullName": "Objeto Inmediato", "category": "Primeridad", "color": "#36AD4A", "description": "El objeto tal como es representado por el signo. Es la idea o imagen mental del objeto dentro del propio signo." }, "position": { "x": -299, "y": -352 } },
+      { "data": { "id": "n2", "label": "SG", "fullName": "Signo", "category": "Terceridad", "color": "#CA2727", "description": "La entidad principal que representa al objeto y genera un interpretante. Se divide en Cualisigno, Sinsigno y Legisigno." }, "position": { "x": -335, "y": -209 } },
+      { "data": { "id": "n3", "label": "ICO", "fullName": "Icono", "category": "Primeridad", "color": "#36AD4A", "description": "Signo que se refiere a su objeto por semejanza o cualidad compartida, como un retrato o un mapa." }, "position": { "x": -553, "y": -467 } },
+      { "data": { "id": "n4", "label": "IND", "fullName": "Índice", "category": "Segundidad", "color": "#4285F4", "description": "Signo que se refiere a su objeto por una conexión física o existencial, como el humo que indica fuego." }, "position": { "x": -553, "y": -325 } },
+      { "data": { "id": "n5", "label": "SIM", "fullName": "Símbolo", "category": "Terceridad", "color": "#CA2727", "description": "Signo que se refiere a su objeto por una ley, convención o hábito, como las palabras o las señales de tráfico." }, "position": { "x": -466, "y": -255 } },
+      { "data": { "id": "n6", "label": "CUA", "fullName": "Cualisigno", "category": "Primeridad", "color": "#36AD4A", "description": "Una cualidad que actúa como signo. Es una posibilidad, como el color rojo o la sensación de suavidad." }, "position": { "x": -438, "y": -158 } },
+      { "data": { "id": "n7", "label": "SIN", "fullName": "Sinsigno", "category": "Segundidad", "color": "#4285F4", "description": "Una cosa o evento existente que actúa como signo. Es un signo singular y concreto, como 'esta' mancha roja." }, "position": { "x": -397, "y": -92 } },
+      { "data": { "id": "n8", "label": "LEG", "fullName": "Legisigno", "category": "Terceridad", "color": "#CA2727", "description": "Una ley o convención que actúa como signo. Es un tipo general, como la palabra 'rojo' en español." }, "position": { "x": -299, "y": -100 } },
+      { "data": { "id": "n9", "label": "I.I", "fullName": "Interpretante Inmediato", "category": "Primeridad", "color": "#36AD4A", "description": "El primer efecto del signo en la mente, el significado potencial o la pura posibilidad de interpretación." }, "position": { "x": -155, "y": -433 } },
+      { "data": { "id": "n10", "label": "I.D", "fullName": "Interpretante Dinámico", "category": "Segundidad", "color": "#4285F4", "description": "El efecto real y singular que el signo produce en una mente en un momento dado. Es la interpretación en acto." }, "position": { "x": -98, "y": -325 } },
+      { "data": { "id": "n11", "label": "I.F", "fullName": "Interpretante Final", "category": "Terceridad", "color": "#CA2727", "description": "El efecto último y plenamente desarrollado del signo; el hábito o cambio de comportamiento que resulta de la interpretación." }, "position": { "x": -35, "y": -400 } },
+      { "data": { "id": "n12", "label": "REM", "fullName": "Rema", "category": "Primeridad", "color": "#36AD4A", "description": "Un signo que se interpreta como una mera posibilidad. Corresponde a un término o concepto, como 'azul' o 'correr'." }, "position": { "x": 3, "y": -542 } },
+      { "data": { "id": "n13", "label": "DIC", "fullName": "Dicisigno", "category": "Segundidad", "color": "#4285F4", "description": "Un signo que se interpreta como un hecho o existencia. Corresponde a una proposición, como 'el cielo es azul'." }, "position": { "x": 100, "y": -457 } },
+      { "data": { "id": "n14", "label": "ARG", "fullName": "Argumento", "category": "Terceridad", "color": "#CA2727", "description": "Un signo que se interpreta como una ley o razonamiento. Corresponde a una inferencia, como 'todos los hombres son mortales...'." }, "position": { "x": 153, "y": -325 } },
+      { "data": { "id": "n15", "label": "I.EM", "fullName": "Interpretante Emocional", "category": "Primeridad", "color": "#36AD4A", "description": "El primer efecto del signo, consistente en una cualidad de sentimiento o sensación." }, "position": { "x": 19, "y": -289 } },
+      { "data": { "id": "n16", "label": "I.EN", "fullName": "Interpretante Energético", "category": "Segundidad", "color": "#4285F4", "description": "El efecto del signo que implica un esfuerzo o acción, ya sea mental o física." }, "position": { "x": -52, "y": -238 } },
+      { "data": { "id": "n17", "label": "I.LO", "fullName": "Interpretante Lógico", "category": "Terceridad", "color": "#CA2727", "description": "El efecto del signo que produce un cambio de hábito, un concepto o una regla de acción." }, "position": { "x": -164, "y": -201 } },
+      { "data": { "id": "n18", "label": "DED", "fullName": "Deducción", "category": "Terceridad", "color": "#CA2727", "description": "Tipo de argumento que parte de una regla general para llegar a un caso particular. Es un razonamiento necesario." }, "position": { "x": 172, "y": -224 } },
+      { "data": { "id": "n19", "label": "IND", "fullName": "Inducción", "category": "Segundidad", "color": "#4285F4", "description": "Tipo de argumento que parte de casos particulares para inferir una regla general. Es un razonamiento probable." }, "position": { "x": 309, "y": -300 } },
+      { "data": { "id": "n20", "label": "ABD", "fullName": "Abducción", "category": "Primeridad", "color": "#36AD4A", "description": "Tipo de argumento que parte de un resultado sorprendente para proponer una hipótesis explicativa. Es un razonamiento creativo." }, "position": { "x": 242, "y": -424 } },
+      { "data": { "id": "n21", "label": "IMAG", "fullName": "Imagen", "category": "Primeridad", "color": "#36AD4A", "description": "Subtipo de icono que comparte cualidades simples con su objeto, como un color o una forma." }, "position": { "x": -692, "y": -521 } },
+      { "data": { "id": "n22", "label": "DIAG", "fullName": "Diagrama", "category": "Segundidad", "color": "#4285F4", "description": "Subtipo de icono que representa las relaciones entre las partes de su objeto, como un organigrama o un mapa." }, "position": { "x": -708, "y": -415 } },
+      { "data": { "id": "n23", "label": "META", "fullName": "Metáfora", "category": "Terceridad", "color": "#CA2727", "description": "Subtipo de icono que representa a su objeto a través de un paralelismo o una analogía." }, "position": { "x": -659, "y": -342 } }
     ],
     "edges": [
       { "data": { "id": "e0", "source": "n0", "target": "n1" } },
