@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cy = cytoscape({
         container: document.getElementById('cy'),
         style: [
-            // Estilos para nodos, aristas, y clases dinámicas (sin cambios)
+            // Estilos (sin cambios)
             {
                 selector: 'node',
                 style: {
@@ -34,35 +34,34 @@ document.addEventListener('DOMContentLoaded', function() {
         ]
     });
 
-    // --- EL "DIRECTOR DE ESCENA": LA FUNCIÓN MAESTRA DE VISIBILIDAD ---
+    // --- MANEJADORES DE EVENTOS ---
+    const infoPanel = document.getElementById('info-panel');
+    const btnPrimeridad = document.getElementById('btn-primeridad');
+    const btnSegundidad = document.getElementById('btn-segundidad');
+    const btnTerceridad = document.getElementById('btn-terceridad');
+    const btnExpand = document.getElementById('btn-expand');
+    const btnCollapse = document.getElementById('btn-collapse');
+    const signTypeSelector = document.getElementById('sign-type-selector'); // Nuevo selector
+
+    // --- LÓGICA PRINCIPAL (sin cambios) ---
+    // (Aquí irían las funciones: updateGraphVisibility, updateLabels, applyFilter, etc.)
     function updateGraphVisibility() {
-        // 1. Oculta todo por defecto, excepto los 3 nodos raíz.
         const rootNodes = cy.nodes('#n1, #n2, #n10');
         cy.elements().not(rootNodes).addClass('hidden');
-
-        // 2. Función recursiva que recorre la genealogía y muestra los descendientes de nodos expandidos.
         function revealDescendants(nodes) {
             nodes.filter('.expanded').forEach(parentNode => {
                 const children = cy.nodes(parentNode.data('children').map(id => `#${id}`).join(', '));
                 children.removeClass('hidden');
-                // La recursión asegura que si un hijo también está expandido, se muestren sus hijos.
                 revealDescendants(children);
             });
         }
-        
-        // 3. Inicia la cascada de revelación desde los nodos raíz.
         revealDescendants(rootNodes);
-        
-        // 4. Muestra solo las aristas que conectan nodos visibles.
         cy.edges().addClass('hidden');
         cy.nodes(':visible').connectedEdges().removeClass('hidden');
-        
-        // 5. Aplica el filtro de categoría y actualiza las etiquetas.
         applyFilter();
         updateLabels();
     }
 
-    // --- FUNCIONES AUXILIARES ---
     function updateLabels() {
         cy.nodes('[?collapsedLabel]').forEach(node => {
             node.data('label', node.hasClass('expanded') ? node.data('baseLabel') : node.data('collapsedLabel'));
@@ -77,8 +76,16 @@ document.addEventListener('DOMContentLoaded', function() {
             cy.edges(':visible').addClass('grayed-out-edge');
         }
     }
-    
-    // --- CONFIGURACIÓN Y MANEJADORES DE EVENTOS ---
+
+    function resetView() {
+        cy.nodes().removeClass('expanded');
+        activeFilter = null;
+        signTypeSelector.value = ""; // Resetea el menú desplegable
+        updateGraphVisibility();
+        setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
+    }
+
+    // --- CONFIGURACIÓN INICIAL ---
     fetch('peirce.json')
         .then(response => response.json())
         .then(data => {
@@ -86,37 +93,20 @@ document.addEventListener('DOMContentLoaded', function() {
             resetView();
         });
 
-    const infoPanel = document.getElementById('info-panel');
-    const btnPrimeridad = document.getElementById('btn-primeridad');
-    const btnSegundidad = document.getElementById('btn-segundidad');
-    const btnTerceridad = document.getElementById('btn-terceridad');
-    const btnExpand = document.getElementById('btn-expand');
-    const btnCollapse = document.getElementById('btn-collapse');
-
-    // Función para resetear el grafo a su estado inicial.
-    function resetView() {
-        cy.nodes().removeClass('expanded');
-        activeFilter = null;
-        updateGraphVisibility();
-        setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
-    }
-
-    // Evento de clic en un nodo: Solo cambia el estado y llama al director.
+    // --- LÓGICA DE EVENTOS (con añadidos) ---
     cy.on('tap', 'node', function(evt) {
         const clickedNode = evt.target;
-        
         infoPanel.innerHTML = `<h3>${clickedNode.data('fullName')} (${clickedNode.data('label')})</h3><p class="category-badge" style="background-color:${clickedNode.data('color')};">${clickedNode.data('category')}</p><p>${clickedNode.data('description')}</p>`;
         cy.elements().removeClass('highlighted');
         clickedNode.addClass('highlighted');
-
         if (clickedNode.data('children')) {
             clickedNode.toggleClass('expanded');
-            updateGraphVisibility(); // Llama al director para que redibuje la escena.
+            updateGraphVisibility();
         }
     });
-    
-    // Evento de clic en un botón de filtro: Solo cambia el estado y llama al director.
+
     function handleFilterClick(category) {
+        signTypeSelector.value = ""; // Limpia el otro filtro
         activeFilter = (activeFilter === category) ? null : category;
         updateGraphVisibility();
     }
@@ -124,11 +114,42 @@ document.addEventListener('DOMContentLoaded', function() {
     btnSegundidad.addEventListener('click', () => handleFilterClick('Segundidad'));
     btnTerceridad.addEventListener('click', () => handleFilterClick('Terceridad'));
 
-    // Eventos de botones de control global: Solo cambian el estado y llaman al director.
     btnExpand.addEventListener('click', () => {
         cy.nodes('[?children]').addClass('expanded');
         updateGraphVisibility();
     });
 
     btnCollapse.addEventListener('click', resetView);
+
+    // --- NUEVA LÓGICA PARA EL MENÚ DE TIPOS DE SIGNO ---
+    signTypeSelector.addEventListener('change', function() {
+        const selectedCombination = this.value;
+
+        // Si el usuario selecciona la opción por defecto, resetea la vista.
+        if (!selectedCombination) {
+            resetView();
+            return;
+        }
+
+        // 1. Expande todo el grafo automáticamente.
+        cy.elements().removeClass('hidden');
+        cy.nodes('[?children]').addClass('expanded');
+        updateLabels();
+
+        // 2. Limpia filtros anteriores.
+        activeFilter = null;
+        cy.elements().removeClass('grayed-out grayed-out-edge');
+
+        // 3. Ilumina solo los nodos de la combinación.
+        const labelsToHighlight = selectedCombination.split(',');
+        
+        // Corrección para "Argumentativo" que es el nodo "ARG"
+        const finalLabels = labelsToHighlight.map(label => label === "Argumentativo" ? "ARG" : label);
+
+        const selector = finalLabels.map(label => `node[label = "${label}"]`).join(', ');
+        const nodesToShow = cy.nodes(selector);
+        const elementsToGray = cy.elements().not(nodesToShow);
+
+        elementsToGray.addClass('grayed-out grayed-out-edge');
+    });
 });
