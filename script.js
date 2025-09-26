@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    let activeFilter = null; // Variable para rastrear el filtro de categoría activo
+    let activeFilter = null;
 
     const cy = cytoscape({
         container: document.getElementById('cy'),
@@ -71,7 +71,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const clickedNode = evt.target;
         const nodeData = clickedNode.data();
         
-        infoPanel.innerHTML = `<h3>${nodeData.fullName} (${nodeData.label})</h3><p class="category-badge" style="background-color:${nodeData.color};">${nodeData.category}</p><p>${nodeData.description}</p>`;
+        // --- SECCIÓN CORREGIDA ---
+        // Se actualiza el nombre completo en el panel de info ANTES de cambiar la etiqueta.
+        let fullNameForPanel = nodeData.fullName;
+        if(nodeData.collapsedLabel && !clickedNode.hasClass('expanded')){
+           fullNameForPanel = clickedNode.hasClass('expanded') ? nodeData.fullName : nodeData.collapsedLabel;
+        }
+
+        infoPanel.innerHTML = `<h3>${fullNameForPanel} (${nodeData.label})</h3><p class="category-badge" style="background-color:${nodeData.color};">${nodeData.category}</p><p>${nodeData.description}</p>`;
         cy.elements().removeClass('highlighted');
         clickedNode.addClass('highlighted');
 
@@ -80,10 +87,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const childrenNodes = cy.nodes(childrenSelector);
 
             if (clickedNode.hasClass('expanded')) {
-                const nodesToHide = childrenNodes.union(childrenNodes.successors());
-                nodesToHide.addClass('hidden');
-                nodesToHide.removeClass('expanded');
+                childrenNodes.addClass('hidden');
+                childrenNodes.removeClass('expanded');
                 clickedNode.removeClass('expanded');
+                // Al cerrar, vuelve a la etiqueta colapsada si existe.
                 if (nodeData.collapsedLabel) {
                     clickedNode.data('label', nodeData.collapsedLabel);
                 }
@@ -91,14 +98,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 childrenNodes.removeClass('hidden');
                 childrenNodes.connectedEdges().removeClass('hidden');
                 clickedNode.addClass('expanded');
-                if(nodeData.baseLabel) {
+                // Al abrir, usa la etiqueta base si existe.
+                if (nodeData.baseLabel) {
                     clickedNode.data('label', nodeData.baseLabel);
                 }
             }
         }
     });
 
-    // --- ¡FUNCIÓN DE FILTRO CORREGIDA Y MEJORADA! ---
     function toggleCategoryHighlight(category) {
         if (activeFilter === category) {
             cy.elements().removeClass('grayed-out grayed-out-edge');
@@ -107,19 +114,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         activeFilter = category;
         cy.elements().removeClass('grayed-out grayed-out-edge');
-
-        // Selecciona los nodos base de la categoría
         const seedNodes = cy.nodes(`[category = "${category}"]`);
-        // Selecciona TODOS sus descendientes (hijos, nietos, etc.)
         const descendants = seedNodes.successors();
-        // El grupo a mostrar es la unión de los nodos base y sus descendientes
         const nodesToShow = seedNodes.union(descendants);
-
-        // Oculta todos los nodos que NO están en ese grupo
         const nodesToGray = cy.nodes().not(nodesToShow);
         nodesToGray.addClass('grayed-out');
-
-        // Oculta todas las aristas y luego muestra solo las que conectan los nodos visibles
         cy.edges().addClass('grayed-out-edge');
         nodesToShow.connectedEdges().removeClass('grayed-out-edge');
     }
