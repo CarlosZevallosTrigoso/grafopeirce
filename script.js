@@ -2,23 +2,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let activeFilter = null;
 
-    // --- MAPA DE FAMILIAS DE SIGNOS (LA NUEVA LÓGICA CENTRAL) ---
-    // Cada combinación tiene una lista predefinida y exacta de los nodos que debe iluminar.
+    // --- DICCIONARIO CON LAS DEFINICIONES DE LOS 15 TIPOS DE SIGNO ---
+    const signTypeDefinitions = {
+        "CUA,ICO,REM,I.EM": "Es una cualidad pura que, a través de su semejanza con algo, representa una mera posibilidad y es aprehendida como un sentimiento. Por ejemplo, la sensación de calidez y familiaridad evocada por un matiz de color particular, que sugiere la posibilidad de \"hogar\" sin afirmar nada, generando un efecto puramente afectivo.",
+        "SIN,ICO,REM,I.EM": "Es un objeto o evento singular que, por sus cualidades, se asemeja a otro objeto, representándolo como una posibilidad y generando un sentimiento. Un déjà vu específico, donde una escena presente se siente idéntica a un posible recuerdo, evocando una sensación de extrañeza, es un ejemplo de esta clase.",
+        "SIN,IND,REM,I.EM": "Es un evento singular que dirige la atención hacia su objeto por conexión directa, representándolo como una mera posibilidad y provocando una reacción afectiva. Un grito espontáneo e inesperado en la distancia; señala una posible fuente de peligro, generando un sentimiento inmediato de alerta o miedo antes de cualquier análisis.",
+        "SIN,IND,DIC,I.EM": "Es un evento singular que, por conexión directa, proporciona información fáctica sobre su objeto, y cuyo primer impacto es un sentimiento. La visión de una bandera ondeando a media asta; indica un hecho (alguien importante ha muerto), y su efecto inmediato es un sentimiento de solemnidad o luto.",
+        "SIN,IND,DIC,I.EN": "Es un evento singular que, por conexión directa, provee información fáctica e incita a una reacción física o mental. El golpe de un martillo de subasta que indica \"vendido\"; comunica un hecho y provoca la acción de los licitadores (dejar de pujar) o del personal (registrar la venta).",
+        "LEG,ICO,REM,I.EM": "Es una ley o convención que establece un tipo de signo icónico, representando una posibilidad y generando un sentimiento. Un diagrama general (como el esquema de un átomo) funciona por una convención que dicta cómo sus partes icónicamente representan relaciones. Su aprehensión inicial puede generar un sentimiento de orden o complejidad.",
+        "LEG,IND,REM,I.EM": "Es una ley que establece que un tipo de signo indica su objeto, representándolo como una mera posibilidad y evocando un sentimiento. La convención de usar un pronombre demostrativo como \"esto\"; la palabra apunta a un objeto, sugiriendo su presencia posible, y puede generar un sentimiento de anticipación o curiosidad.",
+        "LEG,IND,DIC,I.EM": "Es una convención según la cual un signo indica información fáctica sobre su objeto, provocando un sentimiento. Un titular de periódico con letras grandes y rojas; la convención indica que la noticia es urgente y real, y su primer efecto en el lector es un sentimiento de alarma o sorpresa.",
+        "LEG,IND,DIC,I.EN": "Es una ley que dicta que un signo indica información fáctica para provocar una acción. La sirena de una ambulancia; es una señal convencional que indica un hecho (\"emergencia en curso\") y está diseñada para provocar una reacción específica: que los demás conductores se aparten.",
+        "LEG,SIM,REM,I.EM": "Es una ley que asigna un significado a un signo arbitrario para representar una posibilidad, generando un sentimiento. El sustantivo común \"unicornio\"; es una convención lingüística que representa un concepto posible, y la idea puede evocar sentimientos de magia o fantasía sin afirmar su existencia.",
+        "LEG,SIM,DIC,I.EM": "Es una convención que permite a un signo arbitrario afirmar un hecho, cuyo efecto inmediato es un sentimiento. Una proposición como \"La libertad es un derecho inalienable\"; es una construcción simbólica que afirma un principio, generando un sentimiento de convicción, inspiración o patriotismo en quien la escucha.",
+        "LEG,SIM,DIC,I.EN": "Es una ley que permite a un signo arbitrario afirmar un hecho para provocar una acción. Una orden militar como \"¡Avancen!\"; es una frase convencional (simbólica) que comunica una orden fáctica (\"la acción de avanzar es requerida ahora\") y su propósito es generar una respuesta conductual inmediata.",
+        "LEG,SIM,ARG,I.EM": "Es un sistema convencional de signos que representa un proceso de razonamiento, cuyo efecto primario es un sentimiento de convicción o duda. Un eslogan político persuasivo; funciona como un argumento condensado (\"Si quieres progreso, vota X\") y busca generar una adhesión emocional antes que un análisis lógico detallado.",
+        "LEG,SIM,ARG,I.EN": "Es un sistema convencional de razonamiento diseñado para provocar una acción específica como conclusión. Un anuncio publicitario que presenta un problema y ofrece el producto como solución (\"¿Cansado? ¡Toma nuestra bebida energética!\"); funciona como un argumento práctico que incita a la acción de comprar y consumir.",
+        "LEG,SIM,ARG,I.LO": "Es un sistema convencional de razonamiento cuyo interpretante final es el establecimiento de un hábito de pensamiento o una regla de conducta. Un silogismo formal en un texto de lógica; es un argumento simbólico por ley, y su interpretación correcta resulta en la asimilación de una regla general de inferencia válida."
+    };
+    
     const signFamilyMap = {
-        "CUA,ICO,REM,I.EM": ["CUA", "ICO", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "SIN,ICO,REM,I.EM": ["SIN", "ICO", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "SIN,IND,REM,I.EM": ["SIN", "IND", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "SIN,IND,DIC,I.EM": ["SIN", "IND", "DIC", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "SIN,IND,DIC,I.EN": ["SIN", "IND", "DIC", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "LEG,ICO,REM,I.EM": ["LEG", "ICO", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "LEG,IND,REM,I.EM": ["LEG", "IND", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "LEG,IND,DIC,I.EM": ["LEG", "IND", "DIC", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "LEG,IND,DIC,I.EN": ["LEG", "IND", "DIC", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "LEG,SIM,REM,I.EM": ["LEG", "SIM", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "LEG,SIM,DIC,I.EM": ["LEG", "SIM", "DIC", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "LEG,SIM,DIC,I.EN": ["LEG", "SIM", "DIC", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "LEG,SIM,ARG,I.EM": ["LEG", "SIM", "ARG", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
-        "LEG,SIM,ARG,I.EN": ["LEG", "SIM", "ARG", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "CUA,ICO,REM,I.EM": ["CUA", "ICO", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"], "SIN,ICO,REM,I.EM": ["SIN", "ICO", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "SIN,IND,REM,I.EM": ["SIN", "IND", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"], "SIN,IND,DIC,I.EM": ["SIN", "IND", "DIC", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "SIN,IND,DIC,I.EN": ["SIN", "IND", "DIC", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"], "LEG,ICO,REM,I.EM": ["LEG", "ICO", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,IND,REM,I.EM": ["LEG", "IND", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"], "LEG,IND,DIC,I.EM": ["LEG", "IND", "DIC", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,IND,DIC,I.EN": ["LEG", "IND", "DIC", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"], "LEG,SIM,REM,I.EM": ["LEG", "SIM", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,SIM,DIC,I.EM": ["LEG", "SIM", "DIC", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"], "LEG,SIM,DIC,I.EN": ["LEG", "SIM", "DIC", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,SIM,ARG,I.EM": ["LEG", "SIM", "ARG", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"], "LEG,SIM,ARG,I.EN": ["LEG", "SIM", "ARG", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"],
         "LEG,SIM,ARG,I.LO": ["LEG", "SIM", "ARG", "I.LO", "SG", "O.D", "O.I", "I.F", "I.D"]
     };
 
@@ -88,6 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
             signTypeSelector.value = "";
         }
         updateGraphVisibility();
+        infoPanel.innerHTML = '<h2>Información</h2><p>Haz clic en un nodo del grafo para ver su detalle aquí.</p>';
         setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
     }
     
@@ -96,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
         cy.nodes('[?children]').addClass('expanded');
         activeFilter = null;
         updateLabels();
+        infoPanel.innerHTML = '<h2>Información</h2><p>Haz clic en un nodo del grafo para ver su detalle aquí.</p>';
     }
 
     // --- CONFIGURACIÓN INICIAL ---
@@ -124,6 +136,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         activeFilter = (activeFilter === category) ? null : category;
         updateGraphVisibility();
+        infoPanel.innerHTML = '<h2>Información</h2><p>Haz clic en un nodo del grafo para ver su detalle aquí.</p>';
     }
     btnPrimeridad.addEventListener('click', () => handleFilterClick('Primeridad'));
     btnSegundidad.addEventListener('click', () => handleFilterClick('Segundidad'));
@@ -132,9 +145,10 @@ document.addEventListener('DOMContentLoaded', function() {
     btnExpand.addEventListener('click', expandAll);
     btnCollapse.addEventListener('click', resetView);
 
-    // --- LÓGICA DEL MENÚ DE TIPOS DE SIGNO (VERSIÓN CON MAPA PREDEFINIDO) ---
+    // Lógica del menú de Tipos de Signo
     signTypeSelector.addEventListener('change', function() {
         const selectedValue = this.value;
+        const selectedText = this.options[this.selectedIndex].text;
 
         if (!selectedValue) {
             resetView();
@@ -148,11 +162,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         expandAll();
         
-        // Busca la lista de nodos en nuestro mapa predefinido
         const labelsToShow = signFamilyMap[selectedValue];
-        if (!labelsToShow) return; // Si no se encuentra, no hace nada
+        if (!labelsToShow) return;
 
-        // Construye el selector a partir de la lista exacta
         const selector = labelsToShow.map(label => `node[label = "${label}"]`).join(', ');
         const pathNodes = cy.nodes(selector);
         
@@ -160,6 +172,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const elementsToGray = cy.elements().not(elementsToShow);
         
         elementsToGray.addClass('grayed-out grayed-out-edge');
+
+        // Muestra la definición de la combinación en el panel
+        const definition = signTypeDefinitions[selectedValue];
+        if (definition) {
+            infoPanel.innerHTML = `<h3>${selectedText}</h3><p>${definition}</p>`;
+        }
     });
 
     // --- FUNCIONES AUXILIARES ---
