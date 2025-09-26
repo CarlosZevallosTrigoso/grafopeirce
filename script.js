@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
+    let activeFilter = null; // Variable para rastrear el filtro de categoría activo
+
     const cy = cytoscape({
         container: document.getElementById('cy'),
         style: [
@@ -36,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             cy.add(data.elements);
             cy.layout({ name: 'preset', padding: 30 }).run();
-            resetView(); // Usamos resetView para establecer el estado inicial
+            resetView();
         });
 
     const infoPanel = document.getElementById('info-panel');
@@ -48,20 +50,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnReset = document.getElementById('btn-reset');
 
     function resetView() {
-        // Oculta todos los nodos que deben estar ocultos al inicio o al colapsar
         const nodesToHide = cy.nodes('[?isInitiallyHidden]');
         nodesToHide.addClass('hidden');
         nodesToHide.connectedEdges().addClass('hidden');
 
-        // Resetea los nodos principales a su estado colapsado
         const initialNodes = cy.nodes('[?collapsedLabel]');
         initialNodes.forEach(node => {
             node.data('label', node.data('collapsedLabel'));
         });
 
-        // Limpia todos los estilos dinámicos
         cy.elements().removeClass('grayed-out grayed-out-edge highlighted expanded');
-        cy.fit(initialNodes, 50); // Centra la vista en los nodos iniciales
+        activeFilter = null; // Resetea el estado del filtro
+        cy.fit(cy.nodes(':visible'), 50);
     }
 
     // Al hacer clic en un nodo
@@ -73,20 +73,19 @@ document.addEventListener('DOMContentLoaded', function() {
         cy.elements().removeClass('highlighted');
         clickedNode.addClass('highlighted');
 
-        // Lógica de expandir/colapsar
         if (nodeData.children) {
             const childrenSelector = nodeData.children.map(id => `#${id}`).join(', ');
             const childrenNodes = cy.nodes(childrenSelector);
 
             if (clickedNode.hasClass('expanded')) {
-                // Si está expandido, lo cerramos (y a todos sus descendientes)
-                clickedNode.successors().addClass('hidden'); // Oculta todos los sucesores
+                const nodesToHide = childrenNodes.union(childrenNodes.successors());
+                nodesToHide.addClass('hidden');
+                nodesToHide.removeClass('expanded');
                 clickedNode.removeClass('expanded');
-                if(nodeData.collapsedLabel) {
+                if (nodeData.collapsedLabel) {
                     clickedNode.data('label', nodeData.collapsedLabel);
                 }
             } else {
-                // Si está cerrado, lo expandimos
                 childrenNodes.removeClass('hidden');
                 childrenNodes.connectedEdges().removeClass('hidden');
                 clickedNode.addClass('expanded');
@@ -97,18 +96,31 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Filtros de categoría
-    function highlightCategory(category) {
+    // --- ¡NUEVA FUNCIÓN DE FILTRO ON/OFF! ---
+    function toggleCategoryHighlight(category) {
+        // Si el filtro que se clickea ya está activo, se desactiva todo
+        if (activeFilter === category) {
+            cy.elements().removeClass('grayed-out grayed-out-edge');
+            activeFilter = null; // Se limpia el filtro activo
+            return; // Termina la función
+        }
+
+        // Si se activa un filtro nuevo
+        activeFilter = category; // Se guarda el nuevo filtro como activo
+
+        // Se limpian estilos y se aplican los nuevos
         cy.elements().removeClass('grayed-out grayed-out-edge');
-        cy.nodes(`[category != "${category}"]`).addClass('grayed-out');
+        const nodesToGray = cy.nodes(`[category != "${category}"]`);
+        nodesToGray.addClass('grayed-out');
         cy.edges().addClass('grayed-out-edge');
     }
 
-    btnPrimeridad.addEventListener('click', () => highlightCategory('Primeridad'));
-    btnSegundidad.addEventListener('click', () => highlightCategory('Segundidad'));
-    btnTerceridad.addEventListener('click', () => highlightCategory('Terceridad'));
+    // Se actualizan los listeners de los botones
+    btnPrimeridad.addEventListener('click', () => toggleCategoryHighlight('Primeridad'));
+    btnSegundidad.addEventListener('click', () => toggleCategoryHighlight('Segundidad'));
+    btnTerceridad.addEventListener('click', () => toggleCategoryHighlight('Terceridad'));
 
-    // Controles del grafo
+    // Controles del grafo (Expandir/Colapsar/Reiniciar)
     btnExpand.addEventListener('click', () => {
         cy.elements().removeClass('hidden');
         cy.nodes('[?children]').addClass('expanded');
