@@ -65,7 +65,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- MANEJADORES DE EVENTOS ---
-    const infoPanel = document.getElementById('info-panel');
+    // const infoPanel = document.getElementById('info-panel'); // Este panel ya no muestra descripciones
+    const floatingInfoPanel = document.getElementById('floating-info-panel'); // Nuevo panel flotante
     const btnPrimeridad = document.getElementById('btn-primeridad');
     const btnSegundidad = document.getElementById('btn-segundidad');
     const btnTerceridad = document.getElementById('btn-terceridad');
@@ -98,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
             signTypeSelector.value = "";
         }
         updateGraphVisibility();
-        infoPanel.innerHTML = '<h2>Información</h2><p>Haz clic en un nodo del grafo para ver su detalle aquí.</p>';
+        hideFloatingInfoPanel(); // Oculta el panel flotante al resetear
         setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
     }
     
@@ -107,7 +108,21 @@ document.addEventListener('DOMContentLoaded', function() {
         cy.nodes('[?children]').addClass('expanded');
         activeFilter = null;
         updateLabels();
-        infoPanel.innerHTML = '<h2>Información</h2><p>Haz clic en un nodo del grafo para ver su detalle aquí.</p>';
+        hideFloatingInfoPanel(); // Oculta el panel flotante al expandir
+    }
+
+    function showFloatingInfoPanel(title, category, categoryColor, description) {
+        let categoryHtml = '';
+        if (category && categoryColor) {
+            categoryHtml = `<p class="category-badge" style="background-color:${categoryColor};">${category}</p>`;
+        }
+        floatingInfoPanel.innerHTML = `<h3>${title}</h3>${categoryHtml}<p>${description}</p>`;
+        floatingInfoPanel.classList.remove('hidden-panel');
+    }
+
+    function hideFloatingInfoPanel() {
+        floatingInfoPanel.classList.add('hidden-panel');
+        floatingInfoPanel.innerHTML = ''; // Limpia el contenido
     }
 
     // --- CONFIGURACIÓN INICIAL ---
@@ -121,9 +136,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- LÓGICA DE EVENTOS ---
     cy.on('tap', 'node', function(evt) {
         const clickedNode = evt.target;
-        infoPanel.innerHTML = `<h3>${clickedNode.data('fullName')} (${clickedNode.data('label')})</h3><p class="category-badge" style="background-color:${clickedNode.data('color')};">${clickedNode.data('category')}</p><p>${clickedNode.data('description')}</p>`;
         cy.elements().removeClass('highlighted');
         clickedNode.addClass('highlighted');
+        
+        // Muestra la información en el panel flotante
+        showFloatingInfoPanel(
+            `${clickedNode.data('fullName')} (${clickedNode.data('label')})`,
+            clickedNode.data('category'),
+            clickedNode.data('color'),
+            clickedNode.data('description')
+        );
+
         if (clickedNode.data('children')) {
             clickedNode.toggleClass('expanded');
             updateGraphVisibility();
@@ -136,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         activeFilter = (activeFilter === category) ? null : category;
         updateGraphVisibility();
-        infoPanel.innerHTML = '<h2>Información</h2><p>Haz clic en un nodo del grafo para ver su detalle aquí.</p>';
+        hideFloatingInfoPanel(); // Oculta el panel flotante al cambiar el filtro de categoría
     }
     btnPrimeridad.addEventListener('click', () => handleFilterClick('Primeridad'));
     btnSegundidad.addEventListener('click', () => handleFilterClick('Segundidad'));
@@ -157,6 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (selectedValue === "show_all") {
             expandAll();
+            hideFloatingInfoPanel(); // Oculta el panel flotante al mostrar todo
             return;
         }
 
@@ -173,10 +197,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         elementsToGray.addClass('grayed-out grayed-out-edge');
 
-        // Muestra la definición de la combinación en el panel
+        // Muestra la definición de la combinación en el panel flotante
         const definition = signTypeDefinitions[selectedValue];
         if (definition) {
-            infoPanel.innerHTML = `<h3>${selectedText}</h3><p>${definition}</p>`;
+            showFloatingInfoPanel(selectedText, null, null, definition); // No hay categoría para la combinación
         }
     });
 
