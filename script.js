@@ -66,32 +66,51 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 50);
     }
 
+    // --- LÓGICA DE CLIC COMPLETAMENTE REESCRITA ---
     cy.on('tap', 'node', function(evt) {
         const clickedNode = evt.target;
         const nodeData = clickedNode.data();
         
+        // 1. Actualiza el panel de información (sin cambios)
         infoPanel.innerHTML = `<h3>${nodeData.fullName} (${nodeData.label})</h3><p class="category-badge" style="background-color:${nodeData.color};">${nodeData.category}</p><p>${nodeData.description}</p>`;
         cy.elements().removeClass('highlighted');
         clickedNode.addClass('highlighted');
 
+        // 2. Lógica de expandir/colapsar
         if (nodeData.children) {
             const childrenSelector = nodeData.children.map(id => `#${id}`).join(', ');
             const childrenNodes = cy.nodes(childrenSelector);
 
             if (clickedNode.hasClass('expanded')) {
+                // --- REGLA DE COLAPSO EN CASCADA ---
+                // Si el nodo está expandido, lo colapsamos.
+                
+                // 1. Encuentra los hijos directos y TODOS sus descendientes.
                 const nodesToHide = childrenNodes.union(childrenNodes.successors());
+                
+                // 2. Oculta la colección completa.
                 nodesToHide.addClass('hidden');
-                nodesToHide.connectedEdges().addClass('hidden');
+                
+                // 3. Limpia el estado de 'expandido' de cualquier nodo que se esté ocultando.
                 nodesToHide.removeClass('expanded');
+
+                // 4. Finalmente, actualiza el estado del nodo padre que se clickeó.
                 clickedNode.removeClass('expanded');
                 if (nodeData.collapsedLabel) {
                     clickedNode.data('label', nodeData.collapsedLabel);
                 }
+
             } else {
+                // --- REGLA DE EXPANSIÓN SIMPLE ---
+                // Si el nodo está colapsado, lo expandimos.
+                
+                // 1. Muestra solo los hijos directos y sus aristas.
                 childrenNodes.removeClass('hidden');
                 childrenNodes.connectedEdges().removeClass('hidden');
+
+                // 2. Actualiza el estado del nodo padre.
                 clickedNode.addClass('expanded');
-                if(nodeData.baseLabel) {
+                if (nodeData.baseLabel) {
                     clickedNode.data('label', nodeData.baseLabel);
                 }
             }
@@ -106,7 +125,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         activeFilter = category;
         cy.elements().removeClass('grayed-out grayed-out-edge');
-
         const seedNodes = cy.nodes(`:visible[category = "${category}"]`);
         const descendants = seedNodes.successors(':visible');
         const nodesToShow = seedNodes.union(descendants);
