@@ -41,10 +41,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnTerceridad = document.getElementById('btn-terceridad');
     const btnExpand = document.getElementById('btn-expand');
     const btnCollapse = document.getElementById('btn-collapse');
-    const signTypeSelector = document.getElementById('sign-type-selector'); // Nuevo selector
+    const signTypeSelector = document.getElementById('sign-type-selector');
 
     // --- LÓGICA PRINCIPAL (sin cambios) ---
-    // (Aquí irían las funciones: updateGraphVisibility, updateLabels, applyFilter, etc.)
     function updateGraphVisibility() {
         const rootNodes = cy.nodes('#n1, #n2, #n10');
         cy.elements().not(rootNodes).addClass('hidden');
@@ -80,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function resetView() {
         cy.nodes().removeClass('expanded');
         activeFilter = null;
-        signTypeSelector.value = ""; // Resetea el menú desplegable
+        signTypeSelector.value = "";
         updateGraphVisibility();
         setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
     }
@@ -93,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
             resetView();
         });
 
-    // --- LÓGICA DE EVENTOS (con añadidos) ---
+    // --- LÓGICA DE EVENTOS ---
     cy.on('tap', 'node', function(evt) {
         const clickedNode = evt.target;
         infoPanel.innerHTML = `<h3>${clickedNode.data('fullName')} (${clickedNode.data('label')})</h3><p class="category-badge" style="background-color:${clickedNode.data('color')};">${clickedNode.data('category')}</p><p>${clickedNode.data('description')}</p>`;
@@ -106,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function handleFilterClick(category) {
-        signTypeSelector.value = ""; // Limpia el otro filtro
+        signTypeSelector.value = "";
         activeFilter = (activeFilter === category) ? null : category;
         updateGraphVisibility();
     }
@@ -121,35 +120,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     btnCollapse.addEventListener('click', resetView);
 
-    // --- NUEVA LÓGICA PARA EL MENÚ DE TIPOS DE SIGNO ---
+    // --- LÓGICA PARA EL MENÚ DE TIPOS DE SIGNO (ACTUALIZADA) ---
     signTypeSelector.addEventListener('change', function() {
         const selectedCombination = this.value;
 
-        // Si el usuario selecciona la opción por defecto, resetea la vista.
         if (!selectedCombination) {
             resetView();
             return;
         }
 
-        // 1. Expande todo el grafo automáticamente.
-        cy.elements().removeClass('hidden');
         cy.nodes('[?children]').addClass('expanded');
-        updateLabels();
-
-        // 2. Limpia filtros anteriores.
+        updateGraphVisibility();
         activeFilter = null;
         cy.elements().removeClass('grayed-out grayed-out-edge');
 
-        // 3. Ilumina solo los nodos de la combinación.
+        // --- NUEVA LÓGICA DE ILUMINACIÓN DE RUTA ---
         const labelsToHighlight = selectedCombination.split(',');
+        const selector = labelsToHighlight.map(label => `node[label = "${label}"]`).join(', ');
         
-        // Corrección para "Argumentativo" que es el nodo "ARG"
-        const finalLabels = labelsToHighlight.map(label => label === "Argumentativo" ? "ARG" : label);
+        const targetNodes = cy.nodes(selector);
+        // Encuentra los ancestros de los nodos seleccionados para formar la ruta.
+        const ancestors = targetNodes.predecessors();
+        // La ruta completa son los nodos y sus ancestros.
+        const pathNodes = targetNodes.union(ancestors);
+        // Los elementos a mostrar son esos nodos y las aristas que los conectan.
+        const elementsToShow = pathNodes.union(pathNodes.connectedEdges());
 
-        const selector = finalLabels.map(label => `node[label = "${label}"]`).join(', ');
-        const nodesToShow = cy.nodes(selector);
-        const elementsToGray = cy.elements().not(nodesToShow);
-
+        const elementsToGray = cy.elements().not(elementsToShow);
         elementsToGray.addClass('grayed-out grayed-out-edge');
     });
 });
