@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador de la Semiótica de Peirce</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <div id="sidebar">
+            <header>
+                <h1>Semiótica de Peirce</h1>
+                <p>Un explorador interactivo de sus tricotonimías.</p>
+            </header>
+
+            <div id="controls">
+                <h2>Explorar Categorías</h2>
+                <button id="btn-primeridad">Primeridad</button>
+                <button id="btn-segundidad">Segundidad</button>
+                <button id="btn-terceridad">Terceridad</button>
+                <button id="btn-reset">Mostrar Todo</button>
+            </div>
+
+            <div id="info-panel">
+                <h2>Información</h2>
+                <p>Haz clic en un nodo del grafo para ver su detalle aquí.</p>
+            </div>
+        </div>
+
+        <div id="cy"></div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

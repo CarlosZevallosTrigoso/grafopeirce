@@ -1,0 +1,105 @@
+/* --- CONFIGURACIÓN GENERAL --- */
+:root {
+    --bg-color: #f4f4f9;
+    --sidebar-bg: #ffffff;
+    --text-color: #333;
+    --primary-color: #4285F4;
+    --border-color: #e0e0e0;
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    height: 100%;
+    overflow: hidden;
+}
+
+/* --- ESTRUCTURA PRINCIPAL --- */
+.app-container {
+    display: flex;
+    height: 100vh;
+}
+
+#sidebar {
+    width: 350px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+#cy {
+    flex-grow: 1; /* Ocupa el resto del espacio */
+    position: relative;
+}
+
+
+/* --- ESTILOS DEL PANEL LATERAL --- */
+#sidebar header h1 {
+    font-size: 1.8em;
+    margin: 0;
+    color: var(--primary-color);
+}
+#sidebar header p {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+#controls, #info-panel {
+    margin-bottom: 30px;
+}
+
+h2 {
+    font-size: 1.2em;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+/* --- ESTILOS DE LOS BOTONES --- */
+#controls button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: #fff;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#controls button:hover {
+    background-color: var(--bg-color);
+    border-color: #ccc;
+}
+
+#btn-primeridad { border-left: 5px solid #36AD4A; }
+#btn-segundidad { border-left: 5px solid #4285F4; }
+#btn-terceridad { border-left: 5px solid #CA2727; }
+#btn-reset { margin-top: 15px; font-weight: bold; }
+
+
+/* --- ESTILOS DEL PANEL DE INFO --- */
+#info-panel h3 {
+    margin: 0 0 5px 0;
+    color: var(--primary-color);
+}
+#info-panel p {
+    line-height: 1.6;
+}
+#info-panel .category-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    color: white;
+    margin-bottom: 15px;
+}
