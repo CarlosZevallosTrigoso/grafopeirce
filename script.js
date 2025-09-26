@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnCollapse = document.getElementById('btn-collapse');
     const signTypeSelector = document.getElementById('sign-type-selector');
 
-    // --- LÓGICA PRINCIPAL (sin cambios) ---
+    // --- FUNCIONES PRINCIPALES ---
     function updateGraphVisibility() {
         const rootNodes = cy.nodes('#n1, #n2, #n10');
         cy.elements().not(rootNodes).addClass('hidden');
@@ -61,27 +61,19 @@ document.addEventListener('DOMContentLoaded', function() {
         updateLabels();
     }
 
-    function updateLabels() {
-        cy.nodes('[?collapsedLabel]').forEach(node => {
-            node.data('label', node.hasClass('expanded') ? node.data('baseLabel') : node.data('collapsedLabel'));
-        });
-    }
-
-    function applyFilter() {
-        cy.elements().removeClass('grayed-out grayed-out-edge');
-        if (activeFilter) {
-            const nodesToGray = cy.nodes(`:visible[category != "${activeFilter}"]`);
-            nodesToGray.addClass('grayed-out');
-            cy.edges(':visible').addClass('grayed-out-edge');
-        }
-    }
-
     function resetView() {
         cy.nodes().removeClass('expanded');
         activeFilter = null;
         signTypeSelector.value = "";
         updateGraphVisibility();
         setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
+    }
+    
+    function expandAll() {
+        cy.elements().removeClass('hidden grayed-out grayed-out-edge');
+        cy.nodes('[?children]').addClass('expanded');
+        activeFilter = null;
+        updateLabels();
     }
 
     // --- CONFIGURACIÓN INICIAL ---
@@ -113,40 +105,56 @@ document.addEventListener('DOMContentLoaded', function() {
     btnSegundidad.addEventListener('click', () => handleFilterClick('Segundidad'));
     btnTerceridad.addEventListener('click', () => handleFilterClick('Terceridad'));
 
-    btnExpand.addEventListener('click', () => {
-        cy.nodes('[?children]').addClass('expanded');
-        updateGraphVisibility();
-    });
-
+    btnExpand.addEventListener('click', expandAll);
     btnCollapse.addEventListener('click', resetView);
 
-    // --- LÓGICA PARA EL MENÚ DE TIPOS DE SIGNO (ACTUALIZADA) ---
+    // --- LÓGICA DEL MENÚ DE TIPOS DE SIGNO (VERSIÓN DEFINITIVA) ---
     signTypeSelector.addEventListener('change', function() {
-        const selectedCombination = this.value;
+        const selectedValue = this.value;
 
-        if (!selectedCombination) {
+        if (selectedValue === "") {
             resetView();
             return;
         }
 
-        cy.nodes('[?children]').addClass('expanded');
-        updateGraphVisibility();
-        activeFilter = null;
-        cy.elements().removeClass('grayed-out grayed-out-edge');
+        if (selectedValue === "show_all") {
+            expandAll();
+            return;
+        }
 
-        // --- NUEVA LÓGICA DE ILUMINACIÓN DE RUTA ---
-        const labelsToHighlight = selectedCombination.split(',');
-        const selector = labelsToHighlight.map(label => `node[label = "${label}"]`).join(', ');
+        // 1. Expande todo para asegurar que todos los nodos son accesibles.
+        expandAll();
         
+        // 2. Construye el selector para los nodos específicos de la combinación.
+        const labelsToHighlight = selectedValue.split(',');
+        const selector = labelsToHighlight.map(label => `node[label = "${label}"]`).join(', ');
         const targetNodes = cy.nodes(selector);
-        // Encuentra los ancestros de los nodos seleccionados para formar la ruta.
+
+        // 3. Encuentra a TODOS los ancestros de esos nodos para formar la ruta.
         const ancestors = targetNodes.predecessors();
-        // La ruta completa son los nodos y sus ancestros.
+
+        // 4. La colección a iluminar son los nodos objetivo, sus ancestros y las aristas que los conectan.
         const pathNodes = targetNodes.union(ancestors);
-        // Los elementos a mostrar son esos nodos y las aristas que los conectan.
         const elementsToShow = pathNodes.union(pathNodes.connectedEdges());
 
+        // 5. Atenúa todo lo demás.
         const elementsToGray = cy.elements().not(elementsToShow);
         elementsToGray.addClass('grayed-out grayed-out-edge');
     });
+
+    // --- FUNCIONES AUXILIARES (sin cambios) ---
+    function updateLabels() {
+        cy.nodes('[?collapsedLabel]').forEach(node => {
+            node.data('label', node.hasClass('expanded') ? node.data('baseLabel') : node.data('collapsedLabel'));
+        });
+    }
+
+    function applyFilter() {
+        cy.elements().removeClass('grayed-out grayed-out-edge');
+        if (activeFilter) {
+            const nodesToGray = cy.nodes(`:visible[category != "${activeFilter}"]`);
+            nodesToGray.addClass('grayed-out');
+            cy.edges(':visible').addClass('grayed-out-edge');
+        }
+    }
 });
