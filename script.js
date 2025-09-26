@@ -47,7 +47,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnTerceridad = document.getElementById('btn-terceridad');
     const btnExpand = document.getElementById('btn-expand');
     const btnCollapse = document.getElementById('btn-collapse');
-    const btnReset = document.getElementById('btn-reset');
 
     function resetView() {
         const nodesToHide = cy.nodes('[?isInitiallyHidden]');
@@ -71,14 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const clickedNode = evt.target;
         const nodeData = clickedNode.data();
         
-        // --- SECCIÓN CORREGIDA ---
-        // Se actualiza el nombre completo en el panel de info ANTES de cambiar la etiqueta.
-        let fullNameForPanel = nodeData.fullName;
-        if(nodeData.collapsedLabel && !clickedNode.hasClass('expanded')){
-           fullNameForPanel = clickedNode.hasClass('expanded') ? nodeData.fullName : nodeData.collapsedLabel;
-        }
-
-        infoPanel.innerHTML = `<h3>${fullNameForPanel} (${nodeData.label})</h3><p class="category-badge" style="background-color:${nodeData.color};">${nodeData.category}</p><p>${nodeData.description}</p>`;
+        infoPanel.innerHTML = `<h3>${nodeData.fullName} (${nodeData.label})</h3><p class="category-badge" style="background-color:${nodeData.color};">${nodeData.category}</p><p>${nodeData.description}</p>`;
         cy.elements().removeClass('highlighted');
         clickedNode.addClass('highlighted');
 
@@ -87,10 +79,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const childrenNodes = cy.nodes(childrenSelector);
 
             if (clickedNode.hasClass('expanded')) {
-                childrenNodes.addClass('hidden');
-                childrenNodes.removeClass('expanded');
+                const nodesToHide = childrenNodes.union(childrenNodes.successors());
+                nodesToHide.addClass('hidden');
+                nodesToHide.connectedEdges().addClass('hidden');
+                nodesToHide.removeClass('expanded');
                 clickedNode.removeClass('expanded');
-                // Al cerrar, vuelve a la etiqueta colapsada si existe.
                 if (nodeData.collapsedLabel) {
                     clickedNode.data('label', nodeData.collapsedLabel);
                 }
@@ -98,14 +91,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 childrenNodes.removeClass('hidden');
                 childrenNodes.connectedEdges().removeClass('hidden');
                 clickedNode.addClass('expanded');
-                // Al abrir, usa la etiqueta base si existe.
-                if (nodeData.baseLabel) {
+                if(nodeData.baseLabel) {
                     clickedNode.data('label', nodeData.baseLabel);
                 }
             }
         }
     });
-
+    
     function toggleCategoryHighlight(category) {
         if (activeFilter === category) {
             cy.elements().removeClass('grayed-out grayed-out-edge');
@@ -114,13 +106,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         activeFilter = category;
         cy.elements().removeClass('grayed-out grayed-out-edge');
-        const seedNodes = cy.nodes(`[category = "${category}"]`);
-        const descendants = seedNodes.successors();
+
+        const seedNodes = cy.nodes(`:visible[category = "${category}"]`);
+        const descendants = seedNodes.successors(':visible');
         const nodesToShow = seedNodes.union(descendants);
-        const nodesToGray = cy.nodes().not(nodesToShow);
+        const nodesToGray = cy.nodes(':visible').not(nodesToShow);
         nodesToGray.addClass('grayed-out');
-        cy.edges().addClass('grayed-out-edge');
-        nodesToShow.connectedEdges().removeClass('grayed-out-edge');
+        cy.edges(':visible').addClass('grayed-out-edge');
+        nodesToShow.connectedEdges(':visible').removeClass('grayed-out-edge');
     }
 
     btnPrimeridad.addEventListener('click', () => toggleCategoryHighlight('Primeridad'));
@@ -134,5 +127,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     btnCollapse.addEventListener('click', resetView);
-    btnReset.addEventListener('click', resetView);
 });
