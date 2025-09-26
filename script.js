@@ -9,14 +9,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 selector: 'node',
                 style: {
                     'label': 'data(label)',
-                    'background-color': 'data(color)', // Usa el color del JSON
+                    'background-color': 'data(color)',
                     'color': '#fff',
                     'text-valign': 'center',
                     'text-halign': 'center',
                     'font-size': '14px',
+                    'width': '50px', // Tamaño fijo
+                    'height': '50px', // Tamaño fijo
                     'text-outline-width': 2,
                     'text-outline-color': 'data(color)',
-                    'transition-property': 'opacity',
+                    'transition-property': 'opacity, border-width',
                     'transition-duration': '0.3s'
                 }
             },
@@ -57,28 +59,18 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             cy.add(data.elements);
             
-            // Aplicar un layout para organizar los nodos
+            // ¡CAMBIO IMPORTANTE AQUÍ!
+            // Usamos el layout 'preset' para fijar las posiciones del JSON.
             cy.layout({
-                name: 'cose',
-                idealEdgeLength: 100,
-                nodeOverlap: 20,
-                refresh: 20,
-                fit: true,
-                padding: 30,
-                randomize: false,
-                componentSpacing: 100,
-                nodeRepulsion: 400000,
-                edgeElasticity: 100,
-                nestingFactor: 5,
-                gravity: 80,
-                numIter: 1000,
-                initialTemp: 200,
-                coolingFactor: 0.95,
-                minTemp: 1.0
+                name: 'preset',
+                padding: 30 // Un pequeño margen alrededor del grafo
             }).run();
+
+            // Centramos y ajustamos el zoom para que todo sea visible
+            cy.fit(); 
         });
 
-    // 3. MANEJAR INTERACTIVIDAD
+    // 3. MANEJAR INTERACTIVIDAD (Sin cambios aquí)
     const infoPanel = document.getElementById('info-panel');
     const btnPrimeridad = document.getElementById('btn-primeridad');
     const btnSegundidad = document.getElementById('btn-segundidad');
