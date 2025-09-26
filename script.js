@@ -60,11 +60,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         cy.elements().removeClass('grayed-out grayed-out-edge highlighted expanded');
-        activeFilter = null; // Resetea el estado del filtro
-        cy.fit(cy.nodes(':visible'), 50);
+        activeFilter = null;
+        
+        setTimeout(() => {
+            cy.fit(cy.nodes(':visible'), 50);
+        }, 50);
     }
 
-    // Al hacer clic en un nodo
     cy.on('tap', 'node', function(evt) {
         const clickedNode = evt.target;
         const nodeData = clickedNode.data();
@@ -96,31 +98,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- ¡NUEVA FUNCIÓN DE FILTRO ON/OFF! ---
+    // --- ¡FUNCIÓN DE FILTRO CORREGIDA Y MEJORADA! ---
     function toggleCategoryHighlight(category) {
-        // Si el filtro que se clickea ya está activo, se desactiva todo
         if (activeFilter === category) {
             cy.elements().removeClass('grayed-out grayed-out-edge');
-            activeFilter = null; // Se limpia el filtro activo
-            return; // Termina la función
+            activeFilter = null;
+            return;
         }
-
-        // Si se activa un filtro nuevo
-        activeFilter = category; // Se guarda el nuevo filtro como activo
-
-        // Se limpian estilos y se aplican los nuevos
+        activeFilter = category;
         cy.elements().removeClass('grayed-out grayed-out-edge');
-        const nodesToGray = cy.nodes(`[category != "${category}"]`);
+
+        // Selecciona los nodos base de la categoría
+        const seedNodes = cy.nodes(`[category = "${category}"]`);
+        // Selecciona TODOS sus descendientes (hijos, nietos, etc.)
+        const descendants = seedNodes.successors();
+        // El grupo a mostrar es la unión de los nodos base y sus descendientes
+        const nodesToShow = seedNodes.union(descendants);
+
+        // Oculta todos los nodos que NO están en ese grupo
+        const nodesToGray = cy.nodes().not(nodesToShow);
         nodesToGray.addClass('grayed-out');
+
+        // Oculta todas las aristas y luego muestra solo las que conectan los nodos visibles
         cy.edges().addClass('grayed-out-edge');
+        nodesToShow.connectedEdges().removeClass('grayed-out-edge');
     }
 
-    // Se actualizan los listeners de los botones
     btnPrimeridad.addEventListener('click', () => toggleCategoryHighlight('Primeridad'));
     btnSegundidad.addEventListener('click', () => toggleCategoryHighlight('Segundidad'));
     btnTerceridad.addEventListener('click', () => toggleCategoryHighlight('Terceridad'));
 
-    // Controles del grafo (Expandir/Colapsar/Reiniciar)
     btnExpand.addEventListener('click', () => {
         cy.elements().removeClass('hidden');
         cy.nodes('[?children]').addClass('expanded');
