@@ -2,6 +2,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let activeFilter = null;
 
+    // --- MAPA DE FAMILIAS DE SIGNOS (LA NUEVA LÓGICA CENTRAL) ---
+    // Cada combinación tiene una lista predefinida y exacta de los nodos que debe iluminar.
+    const signFamilyMap = {
+        "CUA,ICO,REM,I.EM": ["CUA", "ICO", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "SIN,ICO,REM,I.EM": ["SIN", "ICO", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "SIN,IND,REM,I.EM": ["SIN", "IND", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "SIN,IND,DIC,I.EM": ["SIN", "IND", "DIC", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "SIN,IND,DIC,I.EN": ["SIN", "IND", "DIC", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,ICO,REM,I.EM": ["LEG", "ICO", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,IND,REM,I.EM": ["LEG", "IND", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,IND,DIC,I.EM": ["LEG", "IND", "DIC", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,IND,DIC,I.EN": ["LEG", "IND", "DIC", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,SIM,REM,I.EM": ["LEG", "SIM", "REM", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,SIM,DIC,I.EM": ["LEG", "SIM", "DIC", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,SIM,DIC,I.EN": ["LEG", "SIM", "DIC", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,SIM,ARG,I.EM": ["LEG", "SIM", "ARG", "I.EM", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,SIM,ARG,I.EN": ["LEG", "SIM", "ARG", "I.EN", "SG", "O.D", "O.I", "I.F", "I.D"],
+        "LEG,SIM,ARG,I.LO": ["LEG", "SIM", "ARG", "I.LO", "SG", "O.D", "O.I", "I.F", "I.D"]
+    };
+
     const cy = cytoscape({
         container: document.getElementById('cy'),
         style: [
@@ -64,7 +84,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function resetView() {
         cy.nodes().removeClass('expanded');
         activeFilter = null;
-        signTypeSelector.value = "";
+        if (signTypeSelector) {
+            signTypeSelector.value = "";
+        }
         updateGraphVisibility();
         setTimeout(() => cy.fit(cy.nodes(':visible'), 50), 50);
     }
@@ -97,7 +119,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function handleFilterClick(category) {
-        signTypeSelector.value = "";
+        if (signTypeSelector) {
+            signTypeSelector.value = "";
+        }
         activeFilter = (activeFilter === category) ? null : category;
         updateGraphVisibility();
     }
@@ -108,11 +132,11 @@ document.addEventListener('DOMContentLoaded', function() {
     btnExpand.addEventListener('click', expandAll);
     btnCollapse.addEventListener('click', resetView);
 
-    // --- LÓGICA DEL MENÚ DE TIPOS DE SIGNO (VERSIÓN DEFINITIVA) ---
+    // --- LÓGICA DEL MENÚ DE TIPOS DE SIGNO (VERSIÓN CON MAPA PREDEFINIDO) ---
     signTypeSelector.addEventListener('change', function() {
         const selectedValue = this.value;
 
-        if (selectedValue === "") {
+        if (!selectedValue) {
             resetView();
             return;
         }
@@ -122,27 +146,23 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 1. Expande todo para asegurar que todos los nodos son accesibles.
         expandAll();
         
-        // 2. Construye el selector para los nodos específicos de la combinación.
-        const labelsToHighlight = selectedValue.split(',');
-        const selector = labelsToHighlight.map(label => `node[label = "${label}"]`).join(', ');
-        const targetNodes = cy.nodes(selector);
+        // Busca la lista de nodos en nuestro mapa predefinido
+        const labelsToShow = signFamilyMap[selectedValue];
+        if (!labelsToShow) return; // Si no se encuentra, no hace nada
 
-        // 3. Encuentra a TODOS los ancestros de esos nodos para formar la ruta.
-        const ancestors = targetNodes.predecessors();
-
-        // 4. La colección a iluminar son los nodos objetivo, sus ancestros y las aristas que los conectan.
-        const pathNodes = targetNodes.union(ancestors);
+        // Construye el selector a partir de la lista exacta
+        const selector = labelsToShow.map(label => `node[label = "${label}"]`).join(', ');
+        const pathNodes = cy.nodes(selector);
+        
         const elementsToShow = pathNodes.union(pathNodes.connectedEdges());
-
-        // 5. Atenúa todo lo demás.
         const elementsToGray = cy.elements().not(elementsToShow);
+        
         elementsToGray.addClass('grayed-out grayed-out-edge');
     });
 
-    // --- FUNCIONES AUXILIARES (sin cambios) ---
+    // --- FUNCIONES AUXILIARES ---
     function updateLabels() {
         cy.nodes('[?collapsedLabel]').forEach(node => {
             node.data('label', node.hasClass('expanded') ? node.data('baseLabel') : node.data('collapsedLabel'));
