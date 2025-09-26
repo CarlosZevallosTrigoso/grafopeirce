@@ -8,9 +8,7 @@
     <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
 </head>
 <body>
-
     <div class="app-container">
-        
         <div id="sidebar">
             <header>
                 <h1>Semiótica de Peirce</h1>
@@ -22,7 +20,11 @@
                 <button id="btn-primeridad">Primeridad</button>
                 <button id="btn-segundidad">Segundidad</button>
                 <button id="btn-terceridad">Terceridad</button>
-                <button id="btn-reset">Mostrar Todo</button>
+                
+                <h2>Control del Grafo</h2>
+                <button id="btn-expand">Expandir Todo</button>
+                <button id="btn-collapse">Contraer Todo</button>
+                <button id="btn-reset">Reiniciar Vista</button>
             </div>
 
             <div id="info-panel">
@@ -30,11 +32,8 @@
                 <p>Haz clic en un nodo del grafo para ver su detalle aquí.</p>
             </div>
         </div>
-
         <div id="cy"></div>
-
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
